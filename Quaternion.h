@@ -1,6 +1,9 @@
 #ifndef QUATERNION_H
 #define QUATERNION_H
 
+#include <BasicLinearAlgebra.h>
+using namespace BLA;
+
 class Quaternion {
 public:
     float a;
@@ -49,6 +52,9 @@ public:
     // The input must be a pure vector (a == 0)
     const Quaternion rotate(const Quaternion& q) const;
     Quaternion & fractional(float f);
+
+    // This returns the rotation matrix corresponding to the given quaternion
+    BLA::Matrix<3,3> to_rotation_matrix() const;
 };
 
 #endif

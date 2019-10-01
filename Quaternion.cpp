@@ -1,5 +1,8 @@
 #include "Quaternion.h"
 #include "Arduino.h"
+#include "BasicLinearAlgebra.h"
+
+using namespace BLA;
 
 // http://www.euclideanspace.com/maths/algebra/realNormedAlgebra/quaternions/arithmetic/index.htm
 // 800B
@@ -138,5 +141,53 @@ Quaternion & Quaternion::fractional(float f) {
     c *= f;
     d *= f;
     return normalize();
+}
+
+// This returns the rotation matrix corresponding to the given quaternion
+// m00  = 1 - 2 * ( yy + zz );
+// m01  =     2 * ( xy - zw );
+// m02 =     2 * ( xz + yw );
+
+// m10  =     2 * ( xy + zw );
+// m11  = 1 - 2 * ( xx + zz );
+// m12  =     2 * ( yz - xw );
+
+// m20  =     2 * ( xz - yw );
+// m21  =     2 * ( yz + xw );
+// m22 = 1 - 2 * ( xx + yy );
+
+BLA::Matrix<3,3> Quaternion::to_rotation_matrix() const {
+
+    // Quaternion q(*this);
+
+    float q3q3 = c * c;
+    float q3q4 = c * d;
+    float q2q2 = b * b;
+    float q2q3 = b * c;
+    float q2q4 = b * d;
+    float q1q2 = a * b;
+    float q1q3 = a * c;
+    float q1q4 = a * d;
+    float q4q4 = d * d;
+
+    // Matrix<rows,cols>
+    BLA::Matrix<3,3> ret;
+    ret.Fill(0);
+
+    // values are assigned row-major order, ie ret(2,0) is row 3, column 1
+    // row 1
+    ret(0,0) = 1 - 2*(q3q3 + q4q4);
+    ret(0,1) = 2*(q2q3 - q1q4);
+    ret(0,2) = 2*(q2q4 + q1q3);
+    // row 2
+    ret(1,0) = 2*(q2q3 + q1q4);
+    ret(1,1) = 1 - 2*(q2q2 + q4q4);
+    ret(1,2) = 2*(q3q4 - q1q2);
+    // row 3
+    ret(2,0) = 2*(q2q4 - q1q3);
+    ret(2,1) = 2*(q3q4 + q1q2);
+    ret(2,2) = 1 - 2*(q2q2 + q3q3);
+
+    return ret;
 }
 
